@@ -3,6 +3,5 @@ gunicorn
 python-dotenv
 whitenoise
 django-admin-gradient==1.0.2
-
-# psycopg2-binary
-# mysqlclient
+psycopg2-binary
+mysqlclient

@@ -5,7 +5,9 @@ from django.http import HttpResponse
 
 def index(request):
     # Page from the theme 
-    return render(request, 'pages/index.html')
+    line_list = ['S1','S3']
+    eqp_list = ['WSPDC1', 'WSPDC2']
+    return render(request, 'pages/index.html',{'line_list' : line_list, 'eqp_list': eqp_list})
 
 def bc_typography(request):
     return render(request, 'pages/bc_typography.html')
