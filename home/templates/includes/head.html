@@ -18,3 +18,32 @@
 
 <!-- vendor css -->
 <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+<!-- option 선택 했을때 변동-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- line 선택 후 설비 리스트 나오기-->
+<script>
+    $(document).ready(function(){
+        $('#select-line').change(function(){
+            var selected_value = $(this).val();
+            $.ajax({
+                url: '/get_eqplist/',
+                data: {
+                    'selected_value': selected_value
+                },
+                dataType: 'json',
+                success: function(data){
+                    var options = data.options;
+                    var eqp_list = $('#eqp_list');
+                    eqp_list.empty();
+                    $.each(options, function(index, value){
+                        eqp_list.append($('<option>').text(value));
+                    });
+                }
+            });
+			$('#select-eqp').val('');
+
+        });
+    });
+
+</script>

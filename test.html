@@ -1,0 +1,81 @@
+<script>
+
+
+
+
+<script>
+    $(document).ready(function(){
+    // 초기화할 필드 값 저장
+    var selectEqpValue = $('#select-eqp').val();
+    var selectLineValue = $('#select-line').val();
+
+    $('#processBtn').click(function(){
+        var eqp_val = $('#select-eqp').val();
+        var ppid_val = $('#select-ppid').val();
+
+        if (!eqp_val) {
+            alert("설비를 선택하세요.");
+            return false; // 폼 전송을 중단
+        }
+        else if (!ppid_val){
+            alert("PPID를 선택하세요.");
+            return false; // 폼 전송을 중단            
+        }
+
+        // 데이터 처리 코드
+        $('#processBtn').click(function(){
+            $.ajax({
+                url: "{% url 'process_data' %}",
+                type: "POST",
+                data: $('#dataForm').serialize(),
+                success: function(response){
+                    if (response.error) {
+                        alert(response.error);
+                    } else {
+                        $('#resultRow td').text(response.result);
+                        $('#result_table').show();
+                    }
+                },
+                error: function(xhr, errmsg, err){
+                    alert('Error occurred while processing data: ' + errmsg);
+                }
+            });
+        });
+    });
+
+    $('#btn-ppid').click(function(){
+        var eqp_id = $('#select-eqp').val();
+        var line = $('#select-line').val();
+
+        if (!eqp_id) {
+            alert("라인을 선택하세요.");
+            return false; // 폼 전송을 중단
+        }
+        $.ajax({
+            url: '/get_ppid/',
+            data: {
+                'line': line,
+                'eqp_id': eqp_id
+            },
+            dataType: 'json',
+            success: function(data){
+                var options = data.options;
+                var ppid_list = $('#ppid_list');
+                ppid_list.empty(); // 이전 옵션들을 비웁니다.
+                $('#select-eqp').val(selectEqpValue);
+                $('#select-line').val(selectLineValue);
+                $.each(options, function(index, value){
+                    ppid_list.append($('<option>').text(value));
+                });
+            }
+        });
+    });
+
+    // 폼 제출 후에 초기화된 필드 값 복원
+    $('#dataForm').submit(function() {
+        $('#select-eqp').val(selectEqpValue);
+        $('#select-line').val(selectLineValue);
+    });
+});
+</script>
+</script>

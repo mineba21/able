@@ -8,64 +8,124 @@
         <div class="card table-card">
             <div class="card-header">
                 <h5>Campaign monitor</h5>
-                <form>
-                    <div class="row align-items-center">
-                        <label for="select-line" class="col-auto col-form-label">라인 :</label>
-                        <div class="col-sm-1">
-                            <input type="text" id="select-line" class="form-control" list="line_list" >
-                            <datalist id="line_list">
+                    <form id="dataForm">
+                        <div class="row align-items-center">
+                            <label for="select-line" class="col-form-label">라인 :</label>
+                            
+                            <select id="select-line" class="form-control" onchange="chageLangSelect()" style="width:100px;display:inline;">
                                 {% for line in line_list %}
-                                    <option value="{{ line }}">
+                                    <option value="{{ line }}">{{ line  }}</option>
                                 {% endfor %}
-                            </datalist>
+                            </select>
+                            
+                            <label for="select-eqp" class="col-auto col-form-label">설비 :</label>
+                            <div class="col-sm-1" >
+                                <input type="text" id="select-eqp" class="form-control" list="eqp_list" >
+                                <datalist id="eqp_list">
+                                    {% for eqp in eqp_list %}
+                                        <option value="{{ eqp }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+                            <div class="col-sm-2">
+                            <button  id="btn-ppid" class="btn btn-primary btn-sm btn-round mb-2">ppid 검색</button>
+                            </div>
+                            <div class="col-sm-1" >
+                                <input type="text" id="select-ppid" class="form-control" list="ppid_list" >
+                                <datalist id="ppid_list">
+
+                                </datalist>
+                            </div>        
+                            <div class="col-sm-2">
+                                <button  id="processBtn" class="btn btn-warning btn-sm btn-round mb-2">조회</button>
+                            </div>               
                         </div>
-                        <label for="select-eqp" class="col-auto col-form-label">설비 :</label>
-                        <div class="col" >
-                            <input type="text" id="select-eqp" class="form-control" list="eqp_list" style="width:150px">
-                            <datalist id="eqp_list">
-                                {% for eqp in eqp_list %}
-                                    <option value="{{ eqp }}">
-                                {% endfor %}
-                            </datalist>
-                        </div>
-                    </div>
-                </form>
-                <script>
-                    // 설비 선택이 변경될 때마다 호출되는 함수
-                    document.getElementById('select-eqp').addEventListener('change', function() {
-                        var selectedEqp = this.value; // 선택된 설비
-                        var lineSelect = document.getElementById('select-line'); // 라인 선택 요소
-            
-                        // 선택된 설비에 따라 라인 목록을 업데이트
-                        if (selectedEqp === 'A') {
-                            // A 설비에 대한 라인 목록을 설정
-                            var lines = ['A1', 'A2', 'A3'];
-                        } else if (selectedEqp === 'B') {
-                            // B 설비에 대한 라인 목록을 설정
-                            var lines = ['B1', 'B2', 'B3'];
-                        } else {
-                            // 다른 설비가 선택된 경우, 라인 목록을 비움
-                            var lines = [];
-                        }
-            
-                        // 라인 선택 요소의 옵션을 업데이트
-                        lineSelect.innerHTML = '<option value="">선택하세요</option>'; // 기본값 추가
-                        lines.forEach(function(line) {
-                            lineSelect.innerHTML += '<option value="' + line + '">' + line + '</option>'; // 각 라인 옵션 추가
-                        });
-                    });
-                </script>          
+                    </form>
+                    
+         
             </div>
 
         </div>
     </div>
     <!-- Customer overview end -->
+    <!-- 결과 페이지 -->
+    <div class="col-md-12">
+        <table id="result_table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>결과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="resultRow">
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 <!-- [ Main Content ] end -->
 {% endblock content %}
-{% block extrajs %}
+{% block extrajs %} 
 <!-- custom-chart js -->
 <script src="{% static 'assets/js/pages/dashboard-main.js' %}"></script>
 <!-- Apex Chart -->
 <script src="{% static 'assets/js/plugins/apexcharts.min.js' %}"></script>
+ 
+
+<script>
+    // 버튼 클릭 이벤트 핸들러
+    $('#btn-ppid').click(function(){
+        var line = $('#select-line').val();
+        var eqp_id = $('#select-eqp').val();
+        if (!eqp_id) {
+            alert('설비 ID를 입력하세요.');
+            return; // 업데이트 중단
+        }        
+        // AJAX 요청 보내기
+        $.ajax({
+            url: '/get_ppid/',
+            data: {
+                'line': line,
+                'eqp_id': eqp_id
+            },
+            dataType: 'json',
+            success: function(data){
+                var options = data.options;
+                var ppid_list = $('#ppid_list');
+                ppid_list.empty(); // 이전 옵션들을 비웁니다.
+                $.each(options, function(index, value){
+                    ppid_list.append($('<option>').text(value));
+                });
+            }
+        });
+    });
+</script>
+
+
+<script>
+    $(document).ready(function(){
+        $('#processBtn').click(function(){
+            $.ajax({
+                url: "{% url 'process_data' %}",
+                type: "POST",
+                data: $('#dataForm').serialize(),
+                success: function(response){
+                    if (response.error) {
+                        alert(response.error);
+                    } else {
+                        $('#resultRow td').text(response.result);
+                        $('#result_table').show();
+                    }
+                },
+                error: function(xhr, errmsg, err){
+                    alert('Error occurred while processing data: ' + errmsg);
+                }
+            });
+        });
+    });
+
+    
+</script>
+
 {% endblock extrajs %}
